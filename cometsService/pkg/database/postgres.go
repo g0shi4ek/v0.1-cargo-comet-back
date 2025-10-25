@@ -1,24 +1,25 @@
 package database
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func postgresConfigFromEnv() string {
-	host := os.Getenv("DB_HOST")
-	if host == "" {
-		return ""
-	}
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	pass := os.Getenv("DB_PASS")
-	dbname := os.Getenv("DB_NAME")
+	// Получение переменных окружения
+	_ = godotenv.Load()
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
 
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, pass, dbname)
+	dsn := "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword +
+		" dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=UTC"
+	return dsn
 }
 
 func NewPostgresClient() (*gorm.DB, error) {

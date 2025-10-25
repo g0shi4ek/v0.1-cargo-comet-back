@@ -36,7 +36,6 @@ func SetupRoutes(router *gin.Engine, cometsService domain.ICometsService, authCl
 		{
 			calculations.POST("/:comet_id/orbit", handler.CalculateOrbit)
 			calculations.POST("/:comet_id/close-approach", handler.CalculateCloseApproach)
-			calculations.GET("/requests/:request_id", handler.GetCalculationStatus)
 		}
 
 		// File upload routes

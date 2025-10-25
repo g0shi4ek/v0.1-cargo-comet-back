@@ -25,30 +25,30 @@ type CometResponse struct {
 	Name                 string     `json:"name"`
 	SemiMajorAxis        *float64   `json:"semi_major_axis"`
 	Eccentricity         *float64   `json:"eccentricity"`
-	Inclination          *float64   `json:"inclination"`
+	RaanDeg              *float64   `json:"raan_deg"`
 	AscendingNodeLong    *float64   `json:"ascending_node_long"`
 	ArgumentOfPerihelion *float64   `json:"argument_of_perihelion"`
-	TimeOfPerihelion     *time.Time `json:"time_of_perihelion"`
+	TrueAnomalyDeg       *float64   `json:"true_anomaly_deg"`
 	MinApproachDate      *time.Time `json:"min_approach_date"`
 	MinApproachDistance  *float64   `json:"min_approach_distance"`
 	CalculatedAt         time.Time  `json:"calculated_at"`
 }
 
 type CometOrbitResponse struct {
-	ID                   int        `json:"id"`
-	SemiMajorAxis        *float64   `json:"semi_major_axis"`
-	Eccentricity         *float64   `json:"eccentricity"`
-	Inclination          *float64   `json:"inclination"`
-	AscendingNodeLong    *float64   `json:"ascending_node_long"`
-	ArgumentOfPerihelion *float64   `json:"argument_of_perihelion"`
-	TimeOfPerihelion     *time.Time `json:"time_of_perihelion"`
+	ID                   int      `json:"id"`
+	SemiMajorAxis        *float64 `json:"semi_major_axis"`
+	Eccentricity         *float64 `json:"eccentricity"`
+	RaanDeg              *float64 `json:"raan_deg"`
+	AscendingNodeLong    *float64 `json:"ascending_node_long"`
+	ArgumentOfPerihelion *float64 `json:"argument_of_perihelion"`
+	TrueAnomalyDeg       *float64 `json:"true_anomaly_deg"`
 }
 
 type CometDistanceResponse struct {
-	ID                   int        `json:"id"`
-	MinApproachDate      *time.Time `json:"min_approach_date"`
-	MinApproachDistance  *float64   `json:"min_approach_distance"`
-	CalculatedAt         time.Time  `json:"calculated_at"`
+	ID                  int        `json:"id"`
+	MinApproachDate     *time.Time `json:"min_approach_date"`
+	MinApproachDistance *float64   `json:"min_approach_distance"`
+	CalculatedAt        time.Time  `json:"calculated_at"`
 }
 
 type ErrorResponse struct {

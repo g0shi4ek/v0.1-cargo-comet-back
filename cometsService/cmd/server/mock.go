@@ -23,10 +23,10 @@ func (m *MockOrbitCalculationClient) CalculateOrbit(ctx context.Context, observa
 	return &domain.OrbitalElements{
 		SemiMajorAxis:        17.8,
 		Eccentricity:         0.967,
-		Inclination:          162.3,
+		RaanDeg:              162.3,
 		AscendingNodeLong:    58.42,
 		ArgumentOfPerihelion: 111.33,
-		TimeOfPerihelion:     time.Now().Add(24 * time.Hour),
+		TrueAnomalyDeg:       162.3,
 	}, nil
 }
 
@@ -34,7 +34,7 @@ func (m *MockOrbitCalculationClient) CalculateCloseApproach(ctx context.Context,
 	// Имитация расчета сближения
 	return &domain.CloseApproach{
 		Date:     time.Now().Add(30 * 24 * time.Hour), // через 30 дней
-		Distance: 0.2, // 0.2 а.е.
+		Distance: 0.2,                                 // 0.2 а.е.
 	}, nil
 }
 

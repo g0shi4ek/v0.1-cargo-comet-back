@@ -307,28 +307,6 @@ func (h *CometsHandler) CalculateCloseApproach(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func (h *CometsHandler) GetCalculationStatus(c *gin.Context) {
-	userID, err := GetUserIDFromContext(c)
-	if err != nil {
-		HandleError(c, err)
-		return
-	}
-
-	requestID, err := strconv.Atoi(c.Param("request_id"))
-	if err != nil {
-		HandleError(c, domain.ErrInvalidInput)
-		return
-	}
-
-	status, err := h.cometsService.GetCalculationStatus(c.Request.Context(), userID, requestID)
-	if err != nil {
-		HandleError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, status)
-}
-
 // File upload handler
 func (h *CometsHandler) UploadObservationPhoto(c *gin.Context) {
 	userID, err := GetUserIDFromContext(c)
@@ -358,7 +336,7 @@ func (h *CometsHandler) UploadObservationPhoto(c *gin.Context) {
 		return
 	}
 
-	photoURL, err := h.cometsService.UploadObservationPhoto(c.Request.Context(), userID, fileData, file.Filename)
+	photoURL, err := h.cometsService.UploadCometPhoto(c.Request.Context(), userID, fileData, file.Filename)
 	if err != nil {
 		HandleError(c, err)
 		return

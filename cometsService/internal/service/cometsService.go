@@ -38,7 +38,6 @@ func (s *CometsService) CreateObservation(ctx context.Context, userID int, req *
 		RightAscension: req.RightAscension,
 		Declination:    req.Declination,
 		ObservedAt:     observedAt,
-		PhotoURL:       req.PhotoURL,
 	}
 
 	if err := s.cometRepo.CreateObservation(ctx, observation); err != nil {
@@ -160,7 +159,7 @@ func (s *CometsService) CalculateOrbit(ctx context.Context, userID, cometID int)
 		return nil, err
 	}
 
-	if len(observations) < 3 {
+	if len(observations) < 5 {
 		return nil, domain.ErrNotEnoughObservations
 	}
 
@@ -173,11 +172,10 @@ func (s *CometsService) CalculateOrbit(ctx context.Context, userID, cometID int)
 	// Обновляем комету с новыми орбитальными элементами
 	comet.SemiMajorAxis = orbitalElements.SemiMajorAxis
 	comet.Eccentricity = orbitalElements.Eccentricity
-	comet.Inclination = orbitalElements.Inclination
+	comet.RaanDeg = orbitalElements.RaanDeg
 	comet.AscendingNodeLong = orbitalElements.AscendingNodeLong
 	comet.ArgumentOfPerihelion = orbitalElements.ArgumentOfPerihelion
-	comet.TimeOfPerihelion = orbitalElements.TimeOfPerihelion
-	comet.CalculatedAt = time.Now()
+	comet.TrueAnomalyDeg = orbitalElements.TrueAnomalyDeg
 
 	if err := s.cometRepo.UpdateComets(ctx, comet); err != nil {
 		return nil, err
@@ -188,16 +186,17 @@ func (s *CometsService) CalculateOrbit(ctx context.Context, userID, cometID int)
 		ID:                   comet.ID,
 		SemiMajorAxis:        &comet.SemiMajorAxis,
 		Eccentricity:         &comet.Eccentricity,
-		Inclination:          &comet.Inclination,
+		RaanDeg:              &comet.RaanDeg,
 		AscendingNodeLong:    &comet.AscendingNodeLong,
 		ArgumentOfPerihelion: &comet.ArgumentOfPerihelion,
-		TimeOfPerihelion:     &comet.TimeOfPerihelion,
+		TrueAnomalyDeg:       &comet.TrueAnomalyDeg,
 	}
 
 	return response, nil
 }
 
 func (s *CometsService) CalculateCloseApproach(ctx context.Context, userID, cometID int) (*domain.CometDistanceResponse, error) {
+	// Проверяем существование кометы и права доступа
 	// Проверяем существование кометы и права доступа
 	comet, err := s.cometRepo.GetCometsByID(ctx, cometID)
 	if err != nil {
@@ -211,23 +210,18 @@ func (s *CometsService) CalculateCloseApproach(ctx context.Context, userID, come
 		return nil, domain.ErrUnauthorized
 	}
 
-	// Проверяем, что орбитальные элементы уже рассчитаны
-	if comet.SemiMajorAxis == 0 || comet.Eccentricity == 0 {
+	// Получаем наблюдения для кометы
+	observations, err := s.cometRepo.GetUserObservationsByCometID(ctx, cometID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(observations) < 5 {
 		return nil, domain.ErrNotEnoughObservations
 	}
 
-	// Подготавливаем орбитальные элементы для расчета сближения
-	orbitalElements := &domain.OrbitalElements{
-		SemiMajorAxis:        comet.SemiMajorAxis,
-		Eccentricity:         comet.Eccentricity,
-		Inclination:          comet.Inclination,
-		AscendingNodeLong:    comet.AscendingNodeLong,
-		ArgumentOfPerihelion: comet.ArgumentOfPerihelion,
-		TimeOfPerihelion:     comet.TimeOfPerihelion,
-	}
-
 	// Вычисляем сближение
-	closeApproach, err := s.orbitCalcClient.CalculateCloseApproach(ctx, orbitalElements)
+	closeApproach, err := s.orbitCalcClient.CalculateCloseApproach(ctx, observations)
 	if err != nil {
 		return nil, err
 	}
@@ -252,11 +246,7 @@ func (s *CometsService) CalculateCloseApproach(ctx context.Context, userID, come
 	return response, nil
 }
 
-func (s *CometsService) GetCalculationStatus(ctx context.Context, userID, requestID int) (*domain.CalculationRequest, error) {
-	return s.orbitCalcClient.GetCalculationStatus(ctx, requestID)
-}
-
 // File upload methods
-func (s *CometsService) UploadObservationPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error) {
+func (s *CometsService) UploadCometPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error) {
 	return s.fileStorageClient.UploadPhoto(ctx, userID, fileData, fileName)
 }

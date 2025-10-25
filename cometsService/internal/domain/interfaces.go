@@ -45,22 +45,20 @@ type ICometsService interface {
 	// Calculation methods
 	CalculateOrbit(ctx context.Context, userID, cometID int) (*CometOrbitResponse, error)
 	CalculateCloseApproach(ctx context.Context, userID, cometID int) (*CometDistanceResponse, error)
-	GetCalculationStatus(ctx context.Context, userID, requestID int) (*CalculationRequest, error)
 
 	// File upload methods
-	UploadObservationPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error)
+	UploadCometPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error)
 }
 
 // AuthClient интерфейс для сервиса авторизации
 type IAuthClient interface {
-	ValidateToken(ctx context.Context, token string) (int, error)
+	VerifyToken(token string) (bool, int32, error)
 }
 
 // OrbitCalculationClient интерфейс для сервиса расчетов орбит
 type IOrbitCalculationClient interface {
 	CalculateOrbit(ctx context.Context, observations []*Observation) (*OrbitalElements, error)
-	CalculateCloseApproach(ctx context.Context, orbitalElements *OrbitalElements) (*CloseApproach, error)
-	GetCalculationStatus(ctx context.Context, requestID int) (*CalculationRequest, error)
+	CalculateCloseApproach(ctx context.Context, observations []*Observation) (*CloseApproach, error)
 }
 
 // FileStorageClient интерфейс для сервиса хранения файлов

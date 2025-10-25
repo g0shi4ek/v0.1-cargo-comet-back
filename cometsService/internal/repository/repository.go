@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/domain"
+	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/pkg/database"
 	"gorm.io/gorm"
 )
 
@@ -11,8 +12,14 @@ type CometsRepository struct {
 	db *gorm.DB
 }
 
-func NewCometsRepository(db *gorm.DB) *CometsRepository {
-	return &CometsRepository{db: db}
+func NewCometsRepository() *CometsRepository {
+	postgresClient, err := database.NewPostgresClient()
+	if err != nil {
+		return nil
+	}
+	return &CometsRepository{
+		db: postgresClient,
+	}
 }
 
 func (r *CometsRepository) CreateComets(ctx context.Context, comet *domain.Comet) error {
@@ -54,7 +61,7 @@ func (r *CometsRepository) GetObservationByID(ctx context.Context, id int) (*dom
 		Preload("Comet").
 		Where("id = ?", id).
 		First(&observation).Error
-        
+
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
