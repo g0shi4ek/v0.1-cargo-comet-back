@@ -2,28 +2,30 @@ package database
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/domain"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
-func NewGORM(dsn string) (*gorm.DB, error) {
-    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-        Logger: logger.Default.LogMode(logger.Info),
-    })
-    if err != nil {
-        return nil, fmt.Errorf("failed to connect to database: %w", err)
-    }
+func postgresConfigFromEnv() string {
+	host := os.Getenv("DB_HOST")
+	if host == "" {
+		return ""
+	}
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASS")
+	dbname := os.Getenv("DB_NAME")
 
-    // Auto migrate
-    if err := db.AutoMigrate(
-        &domain.Comet{},
-        &domain.Observation{},
-    ); err != nil {
-        return nil, fmt.Errorf("failed to migrate database: %w", err)
-    }
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, pass, dbname)
+}
 
-    return db, nil
+func NewPostgresClient() (*gorm.DB, error) {
+	dsn := postgresConfigFromEnv()
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
 }

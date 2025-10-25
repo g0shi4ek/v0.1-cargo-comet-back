@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package calculation;
+
+service CalculationService {
+  rpc CalculateOrbit(CalculateOrbitRequest) returns (CalculateOrbitResponse);
+  rpc CalculateCloseApproach(CalculateCloseApproachRequest) returns (CalculateCloseApproachResponse);
+}
+
+message ObservationProto {
+  int32 id = 1;
+  int32 user_id = 2;
+  int32 comet_id = 3;
+  double right_ascension = 4;
+  double declination = 5;
+  string observed_at = 6;
+}
+
+message OrbitalElementsProto {
+  double semi_major_axis = 1;
+  double eccentricity = 2;
+  double inclination = 3;
+  double ascending_node_long = 4;
+  double argument_of_perihelion = 5;
+  string time_of_perihelion = 6;
+}
+
+message CloseApproachProto {
+  string date = 1;
+  double distance = 2;
+}
+
+message CalculationRequestProto {
+  int32 id = 1;
+  int32 user_id = 2;
+  int32 comet_id = 3;
+  string status = 4;
+  string error_message = 5;
+}
+
+message CalculateOrbitRequest {
+  repeated ObservationProto observations = 1;
+}
+
+message CalculateOrbitResponse {
+  OrbitalElementsProto orbital_elements = 1;
+}
+
+message CalculateCloseApproachRequest {
+  OrbitalElementsProto orbital_elements = 1;
+}
+
+message CalculateCloseApproachResponse {
+  CloseApproachProto close_approach = 1;
+}

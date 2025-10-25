@@ -103,7 +103,6 @@ func (s *CometsService) UpdateObservation(ctx context.Context, userID, id int, r
 		RightAscension: req.RightAscension,
 		Declination:    req.Declination,
 		ObservedAt:     observedAt,
-		PhotoURL:       req.PhotoURL,
 	}
 
 	return s.cometRepo.UpdateObservation(ctx, observation)
@@ -115,6 +114,7 @@ func (s *CometsService) DeleteObservation(ctx context.Context, id int, userID in
 
 // Comet methods
 func (s *CometsService) CreateComet(ctx context.Context, userID int, req *domain.CreateCometRequest) (*domain.Comet, error) {
+	// добавить добавление изображения
 	comet := &domain.Comet{
 		UserID: userID,
 		Name:   req.Name,

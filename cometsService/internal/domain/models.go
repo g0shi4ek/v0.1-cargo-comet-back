@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 type Observation struct {
 	ID             int       `json:"id" gorm:"primaryKey"`
 	UserID         int       `json:"user_id"`
@@ -12,14 +11,15 @@ type Observation struct {
 	RightAscension float64   `json:"right_ascension"`
 	Declination    float64   `json:"declination"`
 	ObservedAt     time.Time `json:"observed_at"`
-	PhotoURL       string    `json:"photo_url"`
 	Comet          *Comet    `json:"comet,omitempty" gorm:"foreignKey:CometID"`
+	// добавить флаг горизонтальные или нет
 }
 
 type Comet struct {
-	ID                    int        `json:"id" gorm:"primaryKey"`
+	ID                   int        `json:"id" gorm:"primaryKey"`
 	UserID               int        `json:"user_id"`
 	Name                 string     `json:"name"`
+	PhotoURL             string     `json:"photo_url"`
 	SemiMajorAxis        float64    `json:"semi_major_axis"`
 	Eccentricity         float64    `json:"eccentricity"`
 	Inclination          float64    `json:"inclination"`
@@ -29,14 +29,16 @@ type Comet struct {
 	MinApproachDate      *time.Time `json:"min_approach_date"`
 	MinApproachDistance  *float64   `json:"min_approach_distance"`
 	CalculatedAt         time.Time  `json:"calculated_at"`
+	// флаг валидны ли первые
+	//флаг валидны ли вторые
 }
 
 type CalculationRequest struct {
-	ID           int       `json:"id" gorm:"primaryKey"`
-	UserID       int       `json:"user_id"`
-	CometID      int       `json:"comet_id"`
-	Status       string    `json:"status"`
-	ErrorMessage string    `json:"error_message"`
+	ID           int    `json:"id" gorm:"primaryKey"`
+	UserID       int    `json:"user_id"`
+	CometID      int    `json:"comet_id"`
+	Status       string `json:"status"`
+	ErrorMessage string `json:"error_message"`
 }
 
 type OrbitalElements struct {
