@@ -14,13 +14,14 @@ type UpdateObservationRequest struct {
 }
 
 type CreateCometRequest struct {
-	Name     string `json:"name"`
+	Name     string `form:"name" binding:"required"`
 	PhotoURL string `json:"photo_url"`
 }
 
 // чисто для бека
 type UpdateCometRequest struct {
 	Name                 string  `json:"name"`
+	PhotoURL             string  `json:"photo_url"`
 	SemiMajorAxis        float64 `json:"semi_major_axis"`
 	Eccentricity         float64 `json:"eccentricity"`
 	RaanDeg              float64 `json:"raan_deg"`

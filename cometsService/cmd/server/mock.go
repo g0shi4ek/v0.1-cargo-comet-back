@@ -30,31 +30,12 @@ func (m *MockOrbitCalculationClient) CalculateOrbit(ctx context.Context, observa
 	}, nil
 }
 
-func (m *MockOrbitCalculationClient) CalculateCloseApproach(ctx context.Context, orbitalElements []*domain.Observation) (*domain.CloseApproach, error) {
+func (m *MockOrbitCalculationClient) CalculateCloseApproach(ctx context.Context, observations []*domain.Observation) (*domain.CloseApproach, error) {
 	// Имитация расчета сближения
 	return &domain.CloseApproach{
 		Date:     time.Now().Add(30 * 24 * time.Hour), // через 30 дней
 		Distance: 0.2,                                 // 0.2 а.е.
 	}, nil
-}
-
-// MockFileStorageClient заглушка для клиента хранения файлов
-type MockFileStorageClient struct{}
-
-func NewMockFileStorageClient() *MockFileStorageClient {
-	return &MockFileStorageClient{}
-}
-
-func (m *MockFileStorageClient) UploadPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error) {
-	return "https://storage.example.com/photos/" + fileName, nil
-}
-
-func (m *MockFileStorageClient) DeletePhoto(ctx context.Context, photoURL string) error {
-	return nil
-}
-
-func (m *MockFileStorageClient) GetPhotoURL(ctx context.Context, photoURL string) (string, error) {
-	return photoURL, nil
 }
 
 // MockAuthClient заглушка для клиента авторизации
