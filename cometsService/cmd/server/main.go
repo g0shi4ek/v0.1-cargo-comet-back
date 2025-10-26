@@ -50,12 +50,12 @@ func main() {
 		log.Println("Using real gRPC clients")
 
 		// Реальные клиенты
-		_, err := clients.NewRealOrbitCalculationClient(orbitServiceAddr)
+		realOrbitClient, err := clients.NewRealOrbitCalculationClient(orbitServiceAddr)
 		if err != nil {
 			log.Fatal("Failed to create orbit calculation client:", err)
 		}
-		// orbitCalcClient = realOrbitClient
-		orbitCalcClient = NewMockOrbitCalculationClient()
+		orbitCalcClient = realOrbitClient
+		//orbitCalcClient = NewMockOrbitCalculationClient()
 
 	} else {
 		orbitCalcClient = NewMockOrbitCalculationClient()

@@ -2,10 +2,11 @@ package clients
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/domain"
-	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/grpc/cometorbit/proto"
+	cometorbit "github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/grpc/cometorbit/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -38,19 +39,20 @@ func (c *RealOrbitCalculationClient) CalculateOrbit(ctx context.Context, observa
 			TimeUtc:      obs.ObservedAt.Format("2006-01-02 15:04:05"),
 			RaDeg:        obs.RightAscension,
 			DecDeg:       obs.Declination,
-			IsHorizontal: obs.IsHorizontal, // предполагаем экваториальные координаты
+			IsHorizontal: true, // предполагаем экваториальные координаты
 		}
 	}
 
+	log.Println("Sending observations to gRPC service:", grpcObservations)
 	request := &cometorbit.ObservationsRequest{
 		Observations: grpcObservations,
 	}
-
 	response, err := c.client.CalculateKeplerianElements(ctx, request)
 	if err != nil {
+		log.Println("Sending observations to gRPC service:", err)
 		return nil, err
 	}
-
+	log.Println("Sending observations to gRPC service:", response.Eccentricity)
 	// Конвертируем ответ в доменный формат
 	return &domain.OrbitalElements{
 		SemiMajorAxis:        response.SemiMajorAxisAu,
