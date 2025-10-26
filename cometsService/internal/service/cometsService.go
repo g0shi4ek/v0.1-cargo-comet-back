@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/domain"
+	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/pkg/database"
 )
 
 type CometsService struct {
@@ -16,12 +18,15 @@ type CometsService struct {
 func NewCometsService(
 	cometRepo domain.ICometsRepository,
 	orbitCalcClient domain.IOrbitCalculationClient,
-	fileStorageClient domain.IFileStorageClient,
 ) *CometsService {
+	minio, err := database.NewMinioClient()
+	if err != nil {
+		return nil
+	}
 	return &CometsService{
 		cometRepo:         cometRepo,
 		orbitCalcClient:   orbitCalcClient,
-		fileStorageClient: fileStorageClient,
+		fileStorageClient: minio,
 	}
 }
 
@@ -112,11 +117,22 @@ func (s *CometsService) DeleteObservation(ctx context.Context, id int, userID in
 }
 
 // Comet methods
-func (s *CometsService) CreateComet(ctx context.Context, userID int, req *domain.CreateCometRequest) (*domain.Comet, error) {
-	// добавить добавление изображения
+func (s *CometsService) CreateComet(ctx context.Context, userID int, name string, fileData []byte, fileName string) (*domain.Comet, error) {
+	var photoURL string
+	var err error
+
+	// Упрощенная проверка - len() для nil слайсов возвращает 0
+	if len(fileData) > 0 {
+		photoURL, err = s.fileStorageClient.UploadPhoto(ctx, userID, fileData, fileName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	comet := &domain.Comet{
-		UserID: userID,
-		Name:   req.Name,
+		UserID:   userID,
+		Name:     name,
+		PhotoURL: photoURL,
 	}
 
 	if err := s.cometRepo.CreateComets(ctx, comet); err != nil {
@@ -135,6 +151,29 @@ func (s *CometsService) GetUserComets(ctx context.Context, userID int) ([]*domai
 }
 
 func (s *CometsService) DeleteComet(ctx context.Context, id int, userID int) error {
+	// Сначала получаем комету, чтобы узнать photoURL и проверить права
+	comet, err := s.cometRepo.GetCometsByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if comet == nil {
+		return domain.ErrNotFound
+	}
+
+	// Проверяем права доступа
+	if comet.UserID != userID {
+		return domain.ErrUnauthorized
+	}
+
+	// Удаляем фото из хранилища, если оно есть
+	if comet.PhotoURL != "" {
+		if err := s.fileStorageClient.DeletePhoto(ctx, comet.PhotoURL); err != nil {
+			// Логируем ошибку, но не прерываем удаление кометы
+			log.Printf("Warning: failed to delete photo for comet %d: %v", id, err)
+		}
+	}
+
+	// Soft delete кометы (устанавливаем deleted_at)
 	return s.cometRepo.DeleteComets(ctx, id, userID)
 }
 
@@ -247,6 +286,28 @@ func (s *CometsService) CalculateCloseApproach(ctx context.Context, userID, come
 }
 
 // File upload methods
-func (s *CometsService) UploadCometPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error) {
-	return s.fileStorageClient.UploadPhoto(ctx, userID, fileData, fileName)
+func (s *CometsService) UploadCometPhoto(ctx context.Context, userID, cometID int, fileData []byte, fileName string) (*domain.Comet, error) {
+	comet, err := s.cometRepo.GetCometsByID(ctx, cometID)
+	if err != nil {
+		return nil, err
+	}
+	if comet == nil {
+		return nil, domain.ErrNotFound
+	}
+
+	if comet.UserID != userID {
+		return nil, domain.ErrUnauthorized
+	}
+
+	photoURL, err := s.fileStorageClient.UploadPhoto(ctx, userID, fileData, fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	comet.PhotoURL = photoURL
+	if err := s.cometRepo.UpdateComets(ctx, comet); err != nil {
+		return nil, err
+	}
+
+	return comet, nil
 }

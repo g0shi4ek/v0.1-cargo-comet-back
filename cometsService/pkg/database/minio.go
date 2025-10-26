@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -50,7 +51,7 @@ func MinioConfigFromEnv() (*Config, error) {
 	return &cfg, nil
 }
 
-func NewCometClient() (*MinioClient, error) {
+func NewMinioClient() (*MinioClient, error) {
 	minioCfg, err := MinioConfigFromEnv()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load minio config")
@@ -71,16 +72,17 @@ func NewCometClient() (*MinioClient, error) {
 	}, nil
 }
 
-func (m *MinioClient) UploadCometImage(ctx context.Context, imageData []byte, filename string) (string, error) {
-	tariffImageName := m.generateTariffImageName(filename)
+func (m *MinioClient) UploadPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error) {
+	// Генерируем уникальное имя файла с учетом userID
+	objectName := m.generateImageName(userID, fileName)
 
-	contentType := mime.TypeByExtension(filepath.Ext(filename))
+	contentType := mime.TypeByExtension(filepath.Ext(fileName))
 	if contentType == "" {
 		contentType = "image/jpeg"
 	}
 
-	_, err := m.Client.PutObject(ctx, m.BucketName, tariffImageName,
-		bytes.NewReader(imageData), int64(len(imageData)),
+	_, err := m.Client.PutObject(ctx, m.BucketName, objectName,
+		bytes.NewReader(fileData), int64(len(fileData)),
 		minio.PutObjectOptions{
 			ContentType: contentType,
 		})
@@ -88,23 +90,45 @@ func (m *MinioClient) UploadCometImage(ctx context.Context, imageData []byte, fi
 		return "", fmt.Errorf("failed to upload image to MinIO: %v", err)
 	}
 
-	return m.getTariffImageURL(tariffImageName), nil
+	return m.getImageURL(objectName), nil
 }
 
-func (m *MinioClient) DeleteTariffImage(ctx context.Context, tariffImageName string) error {
-	err := m.Client.RemoveObject(ctx, m.BucketName, "images/"+tariffImageName, minio.RemoveObjectOptions{})
+func (m *MinioClient) DeletePhoto(ctx context.Context, photoURL string) error {
+	// Извлекаем objectName из полного URL
+	objectName := m.extractObjectNameFromURL(photoURL)
+
+	err := m.Client.RemoveObject(ctx, m.BucketName, objectName, minio.RemoveObjectOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to delete file from MinIO: %v", err)
 	}
 	return nil
 }
 
-func (m *MinioClient) getTariffImageURL(tariffImageName string) string {
-	return fmt.Sprintf("http://%s/%s/%s", m.Endpoint, m.BucketName, tariffImageName)
+func (m *MinioClient) GetPhotoURL(ctx context.Context, photoURL string) (string, error) {
+	// Для MinIO URL обычно статический, но можно добавить логику генерации signed URL если нужно
+	// Пока просто возвращаем тот же URL
+	return photoURL, nil
 }
 
-func (m *MinioClient) generateTariffImageName(originalFilename string) string {
+// Вспомогательные методы
+
+func (m *MinioClient) getImageURL(objectName string) string {
+	return fmt.Sprintf("http://%s/%s/%s", m.Endpoint, m.BucketName, objectName)
+}
+
+func (m *MinioClient) generateImageName(userID int, originalFilename string) string {
 	ext := filepath.Ext(originalFilename)
 	timestamp := time.Now().Unix()
-	return fmt.Sprintf("images/%d%s", timestamp, ext)
+	// Добавляем userID в путь для организации файлов по пользователям
+	return fmt.Sprintf("images/user_%d/%d%s", userID, timestamp, ext)
+}
+
+func (m *MinioClient) extractObjectNameFromURL(photoURL string) string {
+	// Извлекаем objectName из полного URL
+	// Пример: http://localhost:9000/comet-images/images/user_1/1234567890.jpg -> images/user_1/1234567890.jpg
+	prefix := fmt.Sprintf("http://%s/%s/", m.Endpoint, m.BucketName)
+	if strings.HasPrefix(photoURL, prefix) {
+		return strings.TrimPrefix(photoURL, prefix)
+	}
+	return photoURL // Если не удалось извлечь, возвращаем как есть
 }

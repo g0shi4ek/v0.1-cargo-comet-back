@@ -9,20 +9,21 @@ type ObservationResponse struct {
 	RightAscension float64   `json:"right_ascension"`
 	Declination    float64   `json:"declination"`
 	ObservedAt     time.Time `json:"observed_at"`
-	PhotoURL       string    `json:"photo_url"`
 	CreatedAt      time.Time `json:"created_at"`
 }
 
 type CometCreatedResponse struct {
-	ID     int    `json:"id"`
-	UserID int    `json:"user_id"`
-	Name   string `json:"name"`
+	ID       int    `json:"id"`
+	UserID   int    `json:"user_id"`
+	Name     string `json:"name"`
+	PhotoURL string `json:"photo_url"`
 }
 
 type CometResponse struct {
 	ID                   int        `json:"id"`
 	UserID               int        `json:"user_id"`
 	Name                 string     `json:"name"`
+	PhotoURL             string     `json:"photo_url"`
 	SemiMajorAxis        *float64   `json:"semi_major_axis"`
 	Eccentricity         *float64   `json:"eccentricity"`
 	RaanDeg              *float64   `json:"raan_deg"`

@@ -29,6 +29,7 @@ type Comet struct {
 	MinApproachDate      *time.Time `json:"min_approach_date"`
 	MinApproachDistance  *float64   `json:"min_approach_distance"`
 	CalculatedAt         time.Time  `json:"calculated_at"`
+	DeletedAt            *time.Time `json:"deleted_at,omitempty" gorm:"index"`
 	OrbitActual          bool       `json:"orbit_actual"`
 	CloseActual          bool       `json:"close_actual"`
 }

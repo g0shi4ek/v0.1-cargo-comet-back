@@ -62,6 +62,7 @@ func SeedTestData(db *gorm.DB) error {
 		{
 			UserID:               1,
 			Name:                 "Комета NEOWISE",
+			PhotoURL:             "https://example.com/photo2.jpg",
 			SemiMajorAxis:        280.0,
 			Eccentricity:         0.999,
 			RaanDeg:              129.0,

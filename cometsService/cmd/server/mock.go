@@ -30,7 +30,7 @@ func (m *MockOrbitCalculationClient) CalculateOrbit(ctx context.Context, observa
 	}, nil
 }
 
-func (m *MockOrbitCalculationClient) CalculateCloseApproach(ctx context.Context, orbitalElements *domain.OrbitalElements) (*domain.CloseApproach, error) {
+func (m *MockOrbitCalculationClient) CalculateCloseApproach(ctx context.Context, observations []*domain.Observation) (*domain.CloseApproach, error) {
 	// Имитация расчета сближения
 	return &domain.CloseApproach{
 		Date:     time.Now().Add(30 * 24 * time.Hour), // через 30 дней
@@ -48,25 +48,6 @@ func (m *MockOrbitCalculationClient) GetCalculationStatus(ctx context.Context, r
 	}, nil
 }
 
-// MockFileStorageClient заглушка для клиента хранения файлов
-type MockFileStorageClient struct{}
-
-func NewMockFileStorageClient() *MockFileStorageClient {
-	return &MockFileStorageClient{}
-}
-
-func (m *MockFileStorageClient) UploadPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error) {
-	return "https://storage.example.com/photos/" + fileName, nil
-}
-
-func (m *MockFileStorageClient) DeletePhoto(ctx context.Context, photoURL string) error {
-	return nil
-}
-
-func (m *MockFileStorageClient) GetPhotoURL(ctx context.Context, photoURL string) (string, error) {
-	return photoURL, nil
-}
-
 // MockAuthClient заглушка для клиента авторизации
 type MockAuthClient struct{}
 
@@ -74,11 +55,11 @@ func NewMockAuthClient() *MockAuthClient {
 	return &MockAuthClient{}
 }
 
-func (m *MockAuthClient) ValidateToken(ctx context.Context, token string) (int, error) {
+func (m *MockAuthClient) VerifyToken(token string) (bool, int32, error) {
 	// В реальной реализации здесь должна быть проверка JWT токена
 	// Для демонстрации возвращаем фиксированный userID
 	if token == "" {
-		return 0, domain.ErrUnauthorized
+		return false, 0, domain.ErrUnauthorized
 	}
-	return 1, nil // Возвращаем userID = 1 для всех валидных токенов
+	return true, 1, nil // Возвращаем userID = 1 для всех валидных токенов
 }
