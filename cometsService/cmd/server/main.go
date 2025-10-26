@@ -40,16 +40,16 @@ func main() {
 	// В зависимости от окружения используем реальные или mock клиенты
 	useRealClients := os.Getenv("USE_REAL_CLIENTS")
 
+	realAuthClient, err := clients.NewRealAuthClient(authServiceAddr)
+	if err != nil {
+		log.Fatal("Failed to create auth client:", err)
+	}
+	authClient = realAuthClient
+
 	if useRealClients == "true" {
 		log.Println("Using real gRPC clients")
 
 		// Реальные клиенты
-		realAuthClient, err := clients.NewRealAuthClient(authServiceAddr)
-		if err != nil {
-			log.Fatal("Failed to create auth client:", err)
-		}
-		authClient = realAuthClient
-
 		realOrbitClient, err := clients.NewRealOrbitCalculationClient(orbitServiceAddr)
 		if err != nil {
 			log.Fatal("Failed to create orbit calculation client:", err)

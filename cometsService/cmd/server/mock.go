@@ -16,7 +16,7 @@ func NewMockOrbitCalculationClient() *MockOrbitCalculationClient {
 
 func (m *MockOrbitCalculationClient) CalculateOrbit(ctx context.Context, observations []*domain.Observation) (*domain.OrbitalElements, error) {
 	// Имитация расчета орбитальных элементов на основе наблюдений
-	if len(observations) < 3 {
+	if len(observations) < 5 {
 		return nil, domain.ErrNotEnoughObservations
 	}
 
@@ -35,16 +35,6 @@ func (m *MockOrbitCalculationClient) CalculateCloseApproach(ctx context.Context,
 	return &domain.CloseApproach{
 		Date:     time.Now().Add(30 * 24 * time.Hour), // через 30 дней
 		Distance: 0.2,                                 // 0.2 а.е.
-	}, nil
-}
-
-func (m *MockOrbitCalculationClient) GetCalculationStatus(ctx context.Context, requestID int) (*domain.CalculationRequest, error) {
-	// Имитация получения статуса расчета
-	return &domain.CalculationRequest{
-		ID:      requestID,
-		UserID:  1,
-		CometID: 1,
-		Status:  "completed",
 	}, nil
 }
 

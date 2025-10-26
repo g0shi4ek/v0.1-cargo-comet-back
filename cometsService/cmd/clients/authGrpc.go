@@ -3,7 +3,7 @@ package clients
 import (
 	"context"
 
-	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/grpc/auth/proto"
+	auth "github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/grpc/auth/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
