@@ -29,3 +29,9 @@ type UpdateCometRequest struct {
 	ArgumentOfPerihelion float64 `json:"argument_of_perihelion"`
 	TrueAnomalyDeg       string  `json:"true_anomaly_deg"`
 }
+
+type GetTrajectoryRequest struct {
+	StartTime string `form:"start_time" binding:"required"` // "2006-01-02T15:04:05Z"
+	EndTime   string `form:"end_time" binding:"required"`   // "2006-01-02T15:04:05Z"
+	NumPoints int    `form:"num_points" binding:"required,min=10,max=1000"`
+}

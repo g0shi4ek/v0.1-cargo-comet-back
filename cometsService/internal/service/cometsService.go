@@ -390,3 +390,37 @@ func (s *CometsService) resetCalculationFlags(ctx context.Context, cometID int, 
 
 	return nil
 }
+
+// GetTrajectory получает траекторию кометы и Земли для визуализации
+func (s *CometsService) GetTrajectory(ctx context.Context, userID, cometID int, startTime, endTime time.Time, numPoints int) (*domain.Trajectory, error) {
+	// Проверяем существование кометы и права доступа
+	comet, err := s.cometRepo.GetCometsByID(ctx, cometID)
+	if err != nil {
+		return nil, err
+	}
+	if comet == nil {
+		return nil, domain.ErrNotFound
+	}
+
+	if comet.UserID != userID {
+		return nil, domain.ErrUnauthorized
+	}
+
+	// Проверяем, что орбитальные элементы уже рассчитаны
+	if !comet.OrbitActual {
+		return nil, domain.ErrOrbitNotCalculated
+	}
+
+	// Получаем наблюдения для кометы
+	observations, err := s.cometRepo.GetUserObservationsByCometID(ctx, cometID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(observations) < 3 {
+		return nil, domain.ErrNotEnoughObservations
+	}
+
+	// Получаем траекторию
+	return s.orbitCalcClient.GetTrajectory(ctx, observations, startTime, endTime, numPoints)
+}

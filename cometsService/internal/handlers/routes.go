@@ -37,6 +37,7 @@ func SetupRoutes(router *gin.Engine, cometsService domain.ICometsService, authCl
 		{
 			calculations.POST("/:comet_id/orbit", handler.CalculateOrbit)
 			calculations.POST("/:comet_id/close-approach", handler.CalculateCloseApproach)
+			calculations.GET("/:comet_id/trajectory", handler.GetTrajectory)
 		}
 
 		// Specific observation routes by comet

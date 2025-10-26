@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/domain"
 	"github.com/gin-gonic/gin"
@@ -28,6 +30,7 @@ type ICometsHandler interface {
 	CalculateOrbit(c *gin.Context)
 	CalculateCloseApproach(c *gin.Context)
 	GetCalculationStatus(c *gin.Context)
+	GetTrajectory(c *gin.Context)
 }
 
 type CometsHandler struct {
@@ -380,6 +383,61 @@ func (h *CometsHandler) CalculateCloseApproach(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+}
+
+// GetTrajectory получает траекторию кометы для визуализации
+func (h *CometsHandler) GetTrajectory(c *gin.Context) {
+	userID, err := GetUserIDFromContext(c)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	cometID, err := strconv.Atoi(c.Param("comet_id"))
+	if err != nil {
+		HandleError(c, domain.ErrInvalidInput)
+		return
+	}
+
+	var req domain.GetTrajectoryRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		HandleError(c, domain.ErrInvalidInput)
+		return
+	}
+
+	// Парсим временные параметры
+	startTime, err := time.Parse(time.RFC3339, req.StartTime)
+	if err != nil {
+		HandleError(c, domain.ErrInvalidInput)
+		return
+	}
+
+	endTime, err := time.Parse(time.RFC3339, req.EndTime)
+	if err != nil {
+		HandleError(c, domain.ErrInvalidInput)
+		return
+	}
+
+	// Валидация временного диапазона
+	if endTime.Before(startTime) || endTime.Equal(startTime) {
+		HandleError(c, domain.ErrInvalidInput)
+		return
+	}
+
+	// Максимальный диапазон - 1 год
+	maxDuration := 365 * 24 * time.Hour
+	if endTime.Sub(startTime) > maxDuration {
+		HandleError(c, errors.New("time range too large, maximum is 1 year"))
+		return
+	}
+
+	trajectory, err := h.cometsService.GetTrajectory(c.Request.Context(), userID, cometID, startTime, endTime, req.NumPoints)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, trajectory)
 }
 
 // func (h *CometsHandler) GetCalculationStatus(c *gin.Context) {
