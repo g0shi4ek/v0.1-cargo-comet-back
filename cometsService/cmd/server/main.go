@@ -64,6 +64,9 @@ func main() {
 
 	// Инициализация сервиса
 	cometsService := service.NewCometsService(cometRepo, orbitCalcClient)
+	if cometsService == nil {
+		log.Fatal("Failed to initialize comets service (likely MinIO connection issue)")
+	}
 
 	// Настройка роутера
 	router := gin.Default()

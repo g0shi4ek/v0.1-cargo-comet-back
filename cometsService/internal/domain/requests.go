@@ -5,6 +5,7 @@ type CreateObservationRequest struct {
 	RightAscension float64 `json:"right_ascension" binding:"required"`
 	Declination    float64 `json:"declination" binding:"required"`
 	ObservedAt     string  `json:"observed_at" binding:"required"`
+	IsHorizontal   bool    `json:"is_horizontal"`
 }
 
 type UpdateObservationRequest struct {

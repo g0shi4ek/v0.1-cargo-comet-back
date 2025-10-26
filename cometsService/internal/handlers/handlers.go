@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -53,7 +54,17 @@ func (h *CometsHandler) CreateObservation(c *gin.Context) {
 
 	var req domain.CreateObservationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		HandleError(c, domain.ErrInvalidInput)
+		// Логируем детали ошибки валидации
+		log.Printf("Validation error: %v", err)
+		
+		// Читаем body для отладки
+		body, _ := c.GetRawData()
+		log.Printf("Request body: %s", string(body))
+		
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Bad Request",
+			"message": err.Error(),
+		})
 		return
 	}
 
@@ -217,6 +228,7 @@ func (h *CometsHandler) CreateComet(c *gin.Context) {
 
 	comet, err := h.cometsService.CreateComet(c.Request.Context(), userID, name, fileData, fileName)
 	if err != nil {
+		c.Error(err) // Логируем в Gin
 		HandleError(c, err)
 		return
 	}

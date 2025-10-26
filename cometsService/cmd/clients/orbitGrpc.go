@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/domain"
-	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/grpc/cometorbit/proto"
+	cometorbit "github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/grpc/cometorbit/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -55,8 +55,8 @@ func (c *RealOrbitCalculationClient) CalculateOrbit(ctx context.Context, observa
 	return &domain.OrbitalElements{
 		SemiMajorAxis:        response.SemiMajorAxisAu,
 		Eccentricity:         response.Eccentricity,
-		RaanDeg:              response.InclinationDeg,
-		AscendingNodeLong:    response.RaanDeg,
+		RaanDeg:              response.RaanDeg,
+		InclinationDeg:   	  response.InclinationDeg,
 		ArgumentOfPerihelion: response.ArgOfPeriapsisDeg,
 		TrueAnomalyDeg:       response.TrueAnomalyDeg,
 	}, nil

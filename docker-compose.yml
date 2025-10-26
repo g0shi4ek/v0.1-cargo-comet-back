@@ -6,7 +6,7 @@ services:
     ports:
       - "8082:8080"
     environment:
-      - APP_PORT=8082
+      - APP_PORT=8080
       - RUN_MIGRATIONS=true
       - USE_REAL_CLIENTS=false
       - AUTH_SERVICE_ADDR=127.0.0.1:50051
@@ -17,8 +17,16 @@ services:
       - DB_PASSWORD=mydbpass
       - DB_NAME=cometdb
       - SEED_TEST_DATA=false
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY_ID=minioadmin
+      - MINIO_SECRET_ACCESS_KEY=minioadmin
+      - MINIO_BUCKET_NAME=comet-images
+      - MINIO_USE_SSL=false
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
 
   
   postgres:
@@ -62,7 +70,7 @@ services:
     ports:
       - "5435:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d commetdb"]
+      test: ["CMD-SHELL", "pg_isready -U root -d cometdb"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -40,9 +40,11 @@ func HandleError(c *gin.Context, err error) {
 			Message: err.Error(),
 		})
 	default:
+		// Логируем полную ошибку для отладки
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
 			Error:   "Internal Server Error",
-			Message: "An unexpected error occurred",
+			Message: err.Error(), // В продакшене лучше возвращать "An unexpected error occurred"
 		})
 	}
 }

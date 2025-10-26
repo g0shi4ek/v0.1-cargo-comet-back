@@ -24,7 +24,7 @@ func (m *MockOrbitCalculationClient) CalculateOrbit(ctx context.Context, observa
 		SemiMajorAxis:        17.8,
 		Eccentricity:         0.967,
 		RaanDeg:              162.3,
-		AscendingNodeLong:    58.42,
+		InclinationDeg:    58.42,
 		ArgumentOfPerihelion: 111.33,
 		TrueAnomalyDeg:       162.3,
 	}, nil

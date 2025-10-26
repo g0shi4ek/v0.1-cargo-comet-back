@@ -10,6 +10,7 @@ type ObservationResponse struct {
 	Declination    float64   `json:"declination"`
 	ObservedAt     time.Time `json:"observed_at"`
 	CreatedAt      time.Time `json:"created_at"`
+	IsHorizontal   bool      `json:"is_horizontal"`
 }
 
 type CometCreatedResponse struct {
@@ -27,7 +28,7 @@ type CometResponse struct {
 	SemiMajorAxis        *float64   `json:"semi_major_axis"`
 	Eccentricity         *float64   `json:"eccentricity"`
 	RaanDeg              *float64   `json:"raan_deg"`
-	AscendingNodeLong    *float64   `json:"ascending_node_long"`
+	InclinationDeg   	 *float64   `json:"inclination_deg"`
 	ArgumentOfPerihelion *float64   `json:"argument_of_perihelion"`
 	OrbitActual          bool       `json:"orbit_actual"`
 	TrueAnomalyDeg       *float64   `json:"true_anomaly_deg"`
@@ -42,7 +43,7 @@ type CometOrbitResponse struct {
 	SemiMajorAxis        *float64 `json:"semi_major_axis"`
 	Eccentricity         *float64 `json:"eccentricity"`
 	RaanDeg              *float64 `json:"raan_deg"`
-	AscendingNodeLong    *float64 `json:"ascending_node_long"`
+	InclinationDeg   	 *float64 `json:"inclination_deg"`
 	ArgumentOfPerihelion *float64 `json:"argument_of_perihelion"`
 	TrueAnomalyDeg       *float64 `json:"true_anomaly_deg"`
 	OrbitActual          bool     `json:"orbit_actual"`

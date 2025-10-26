@@ -21,8 +21,10 @@ func NewCometsService(
 ) *CometsService {
 	minio, err := database.NewMinioClient()
 	if err != nil {
+		log.Printf("ERROR: Failed to initialize MinIO client: %v", err)
 		return nil
 	}
+	log.Println("MinIO client initialized successfully")
 	return &CometsService{
 		cometRepo:         cometRepo,
 		orbitCalcClient:   orbitCalcClient,
@@ -43,6 +45,7 @@ func (s *CometsService) CreateObservation(ctx context.Context, userID int, req *
 		RightAscension: req.RightAscension,
 		Declination:    req.Declination,
 		ObservedAt:     observedAt,
+		IsHorizontal:   req.IsHorizontal,
 	}
 
 	if err := s.cometRepo.CreateObservation(ctx, observation); err != nil {
@@ -113,6 +116,7 @@ func (s *CometsService) UpdateObservation(ctx context.Context, userID, id int, r
 		RightAscension: req.RightAscension,
 		Declination:    req.Declination,
 		ObservedAt:     observedAt,
+		IsHorizontal:   existingObservation.IsHorizontal,
 	}
 
 	err = s.cometRepo.UpdateObservation(ctx, observation)
@@ -255,7 +259,7 @@ func (s *CometsService) CalculateOrbit(ctx context.Context, userID, cometID int)
 	comet.SemiMajorAxis = orbitalElements.SemiMajorAxis
 	comet.Eccentricity = orbitalElements.Eccentricity
 	comet.RaanDeg = orbitalElements.RaanDeg
-	comet.AscendingNodeLong = orbitalElements.AscendingNodeLong
+	comet.InclinationDeg = orbitalElements.InclinationDeg
 	comet.ArgumentOfPerihelion = orbitalElements.ArgumentOfPerihelion
 	comet.TrueAnomalyDeg = orbitalElements.TrueAnomalyDeg
 	comet.OrbitActual = true // Устанавливаем флаг
@@ -274,7 +278,7 @@ func (s *CometsService) CalculateOrbit(ctx context.Context, userID, cometID int)
 		SemiMajorAxis:        &comet.SemiMajorAxis,
 		Eccentricity:         &comet.Eccentricity,
 		RaanDeg:              &comet.RaanDeg,
-		AscendingNodeLong:    &comet.AscendingNodeLong,
+		InclinationDeg:    &comet.InclinationDeg,
 		ArgumentOfPerihelion: &comet.ArgumentOfPerihelion,
 		TrueAnomalyDeg:       &comet.TrueAnomalyDeg,
 		OrbitActual:          comet.OrbitActual,

@@ -23,7 +23,7 @@ type Comet struct {
 	SemiMajorAxis        float64    `json:"semi_major_axis"`
 	Eccentricity         float64    `json:"eccentricity"`
 	RaanDeg              float64    `json:"raan_deg"`
-	AscendingNodeLong    float64    `json:"ascending_node_long"`
+	InclinationDeg   		 float64    `json:"inclination_deg"`
 	ArgumentOfPerihelion float64    `json:"argument_of_perihelion"`
 	OrbitActual          bool       `json:"orbit_actual"`
 	TrueAnomalyDeg       float64    `json:"true_anomaly_deg"`
@@ -46,7 +46,7 @@ type OrbitalElements struct {
 	SemiMajorAxis        float64
 	Eccentricity         float64
 	RaanDeg              float64
-	AscendingNodeLong    float64
+	InclinationDeg   		 float64
 	ArgumentOfPerihelion float64
 	TrueAnomalyDeg       float64
 }
