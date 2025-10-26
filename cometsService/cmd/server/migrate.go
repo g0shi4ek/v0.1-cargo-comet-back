@@ -41,11 +41,6 @@ func Migrate() error {
 // SeedTestData заполняет базу тестовыми данными
 func SeedTestData(db *gorm.DB) error {
 	log.Println("Seeding test data...")
-	db, err := database.NewPostgresClient()
-	if err != nil {
-		panic("failed to connect postgres")
-	}
-
 	// Тестовые кометы
 	comets := []domain.Comet{
 		{
