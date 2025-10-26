@@ -29,6 +29,7 @@ func SetupRoutes(router *gin.Engine, cometsService domain.ICometsService, authCl
 			comets.GET("", handler.GetUserComets)
 			comets.GET("/:id", handler.GetComet)
 			comets.DELETE("/:id", handler.DeleteComet)
+			comets.POST("/:comet_id/photo", handler.UploadCometPhoto)
 		}
 
 		// Calculation routes
@@ -36,12 +37,6 @@ func SetupRoutes(router *gin.Engine, cometsService domain.ICometsService, authCl
 		{
 			calculations.POST("/:comet_id/orbit", handler.CalculateOrbit)
 			calculations.POST("/:comet_id/close-approach", handler.CalculateCloseApproach)
-		}
-
-		// File upload routes
-		files := authGroup.Group("/files")
-		{
-			files.POST("/observations/photo", handler.UploadObservationPhoto)
 		}
 
 		// Specific observation routes by comet

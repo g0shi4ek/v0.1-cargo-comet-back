@@ -25,12 +25,13 @@ type Comet struct {
 	RaanDeg              float64    `json:"raan_deg"`
 	AscendingNodeLong    float64    `json:"ascending_node_long"`
 	ArgumentOfPerihelion float64    `json:"argument_of_perihelion"`
+	OrbitActual          bool       `json:"orbit_actual"`
 	TrueAnomalyDeg       float64    `json:"true_anomaly_deg"`
 	MinApproachDate      *time.Time `json:"min_approach_date"`
 	MinApproachDistance  *float64   `json:"min_approach_distance"`
-	CalculatedAt         time.Time  `json:"calculated_at"`
-	OrbitActual          bool       `json:"orbit_actual"`
 	CloseActual          bool       `json:"close_actual"`
+	CalculatedAt         time.Time  `json:"calculated_at"`
+	DeletedAt            *time.Time `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 type CalculationRequest struct {

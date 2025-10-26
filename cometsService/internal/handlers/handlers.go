@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/domain"
+	"github.com/gin-gonic/gin"
 )
 
 type ICometsHandler interface {
@@ -22,14 +22,12 @@ type ICometsHandler interface {
 	GetComet(c *gin.Context)
 	GetUserComets(c *gin.Context)
 	DeleteComet(c *gin.Context)
+	UploadCometPhoto(c *gin.Context)
 
 	// Calculation handlers
 	CalculateOrbit(c *gin.Context)
 	CalculateCloseApproach(c *gin.Context)
 	GetCalculationStatus(c *gin.Context)
-
-	// File upload handler
-	UploadObservationPhoto(c *gin.Context)
 }
 
 type CometsHandler struct {
@@ -175,6 +173,7 @@ func (h *CometsHandler) DeleteObservation(c *gin.Context) {
 }
 
 // Comet handlers
+// Comet handlers
 func (h *CometsHandler) CreateComet(c *gin.Context) {
 	userID, err := GetUserIDFromContext(c)
 	if err != nil {
@@ -182,22 +181,48 @@ func (h *CometsHandler) CreateComet(c *gin.Context) {
 		return
 	}
 
-	var req domain.CreateCometRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	// Получаем название из form-data
+	name := c.PostForm("name")
+	if name == "" {
 		HandleError(c, domain.ErrInvalidInput)
 		return
 	}
 
-	comet, err := h.cometsService.CreateComet(c.Request.Context(), userID, &req)
+	// Получаем файл из form-data
+	var fileData []byte
+	var fileName string
+
+	file, err := c.FormFile("photo")
+	if err == nil {
+		// Файл присутствует, читаем его
+		openedFile, err := file.Open()
+		if err != nil {
+			HandleError(c, err)
+			return
+		}
+		defer openedFile.Close()
+
+		fileData = make([]byte, file.Size)
+		_, err = openedFile.Read(fileData)
+		if err != nil {
+			HandleError(c, err)
+			return
+		}
+		fileName = file.Filename
+	}
+	// Если файла нет - это нормально, photoURL будет пустым
+
+	comet, err := h.cometsService.CreateComet(c.Request.Context(), userID, name, fileData, fileName)
 	if err != nil {
 		HandleError(c, err)
 		return
 	}
 
 	response := domain.CometCreatedResponse{
-		ID:     comet.ID,
-		UserID: comet.UserID,
-		Name:   comet.Name,
+		ID:       comet.ID,
+		UserID:   comet.UserID,
+		Name:     comet.Name,
+		PhotoURL: comet.PhotoURL,
 	}
 
 	c.JSON(http.StatusCreated, response)
@@ -262,6 +287,56 @@ func (h *CometsHandler) DeleteComet(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Comet deleted successfully"})
 }
 
+// File upload handler для кометы
+func (h *CometsHandler) UploadCometPhoto(c *gin.Context) {
+	userID, err := GetUserIDFromContext(c)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	// Получаем comet_id из параметров URL
+	cometID, err := strconv.Atoi(c.Param("comet_id"))
+	if err != nil {
+		HandleError(c, domain.ErrInvalidInput)
+		return
+	}
+
+	file, err := c.FormFile("photo")
+	if err != nil {
+		HandleError(c, domain.ErrInvalidInput)
+		return
+	}
+
+	// Чтение файла
+	openedFile, err := file.Open()
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+	defer openedFile.Close()
+
+	fileData := make([]byte, file.Size)
+	_, err = openedFile.Read(fileData)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	// Используем новый метод для загрузки фото кометы, передаем cometID
+	comet, err := h.cometsService.UploadCometPhoto(c.Request.Context(), userID, cometID, fileData, file.Filename)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "Photo uploaded successfully",
+		"photo_url": comet.PhotoURL,
+		"comet":     comet,
+	})
+}
+
 // Calculation handlers
 func (h *CometsHandler) CalculateOrbit(c *gin.Context) {
 	userID, err := GetUserIDFromContext(c)
@@ -307,40 +382,24 @@ func (h *CometsHandler) CalculateCloseApproach(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// File upload handler
-func (h *CometsHandler) UploadObservationPhoto(c *gin.Context) {
-	userID, err := GetUserIDFromContext(c)
-	if err != nil {
-		HandleError(c, err)
-		return
-	}
+// func (h *CometsHandler) GetCalculationStatus(c *gin.Context) {
+// 	userID, err := GetUserIDFromContext(c)
+// 	if err != nil {
+// 		HandleError(c, err)
+// 		return
+// 	}
 
-	file, err := c.FormFile("photo")
-	if err != nil {
-		HandleError(c, domain.ErrInvalidInput)
-		return
-	}
+// 	requestID, err := strconv.Atoi(c.Param("request_id"))
+// 	if err != nil {
+// 		HandleError(c, domain.ErrInvalidInput)
+// 		return
+// 	}
 
-	// Чтение файла
-	openedFile, err := file.Open()
-	if err != nil {
-		HandleError(c, err)
-		return
-	}
-	defer openedFile.Close()
+// 	status, err := h.cometsService.GetCalculationStatus(c.Request.Context(), userID, requestID)
+// 	if err != nil {
+// 		HandleError(c, err)
+// 		return
+// 	}
 
-	fileData := make([]byte, file.Size)
-	_, err = openedFile.Read(fileData)
-	if err != nil {
-		HandleError(c, err)
-		return
-	}
-
-	photoURL, err := h.cometsService.UploadCometPhoto(c.Request.Context(), userID, fileData, file.Filename)
-	if err != nil {
-		HandleError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"photo_url": photoURL})
-}
+// 	c.JSON(http.StatusOK, status)
+// }

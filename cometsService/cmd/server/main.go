@@ -35,7 +35,6 @@ func main() {
 
 	// Инициализация клиентов
 	var orbitCalcClient domain.IOrbitCalculationClient
-	var fileStorageClient domain.IFileStorageClient
 	var authClient domain.IAuthClient
 
 	// В зависимости от окружения используем реальные или mock клиенты
@@ -58,11 +57,11 @@ func main() {
 		orbitCalcClient = realOrbitClient
 	} else {
 		orbitCalcClient = NewMockOrbitCalculationClient()
-		fileStorageClient = NewMockFileStorageClient()
+		authClient = NewMockAuthClient()
 	}
 
 	// Инициализация сервиса
-	cometsService := service.NewCometsService(cometRepo, orbitCalcClient, fileStorageClient)
+	cometsService := service.NewCometsService(cometRepo, orbitCalcClient)
 
 	// Настройка роутера
 	router := gin.Default()

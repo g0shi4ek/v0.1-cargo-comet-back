@@ -34,6 +34,11 @@ func HandleError(c *gin.Context, err error) {
 			Error:   "Bad Request",
 			Message: err.Error(),
 		})
+	case errors.Is(err, domain.ErrOrbitNotCalculated):
+		c.JSON(http.StatusBadRequest, domain.ErrorResponse{
+			Error:   "Bad Request",
+			Message: err.Error(),
+		})
 	default:
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{
 			Error:   "Internal Server Error",

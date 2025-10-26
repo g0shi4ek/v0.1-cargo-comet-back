@@ -10,6 +10,7 @@ var (
 	ErrNotEnoughObservations = errors.New("not enough observations for orbit calculation")
 	ErrUnauthorized          = errors.New("unauthorized access")
 	ErrInvalidInput          = errors.New("invalid input data")
+	ErrOrbitNotCalculated    = errors.New("orbit not calculated for this comet")
 )
 
 type ICometsRepository interface {
@@ -37,7 +38,7 @@ type ICometsService interface {
 	DeleteObservation(ctx context.Context, id int, userID int) error
 
 	// Comet methods
-	CreateComet(ctx context.Context, userID int, req *CreateCometRequest) (*Comet, error)
+	CreateComet(ctx context.Context, userID int, name string, fileData []byte, fileName string) (*Comet, error)
 	GetComet(ctx context.Context, id int) (*Comet, error)
 	GetUserComets(ctx context.Context, userID int) ([]*Comet, error)
 	DeleteComet(ctx context.Context, id int, userID int) error
@@ -47,7 +48,7 @@ type ICometsService interface {
 	CalculateCloseApproach(ctx context.Context, userID, cometID int) (*CometDistanceResponse, error)
 
 	// File upload methods
-	UploadCometPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error)
+	UploadCometPhoto(ctx context.Context, userID, cometID int, fileData []byte, fileName string) (*Comet, error)
 }
 
 // AuthClient интерфейс для сервиса авторизации
