@@ -31,7 +31,7 @@ func main() {
 
 	// Получение адресов сервисов из переменных окружения
 	authServiceAddr := os.Getenv("AUTH_SERVICE_ADDR")   //"localhost:50051"
-	orbitServiceAddr := os.Getenv("ORBIT_SERVICE_ADDR") //"localhost:50052"
+	orbitServiceAddr := os.Getenv("ORBIT_SERVICE_ADDR") //"localhost:50053"
 
 	// Инициализация клиентов
 	var orbitCalcClient domain.IOrbitCalculationClient
@@ -50,15 +50,14 @@ func main() {
 		log.Println("Using real gRPC clients")
 
 		// Реальные клиенты
-		_, err := clients.NewRealOrbitCalculationClient(orbitServiceAddr)
+		realOrbitClient, err := clients.NewRealOrbitCalculationClient(orbitServiceAddr)
 		if err != nil {
 			log.Fatal("Failed to create orbit calculation client:", err)
 		}
 		// orbitCalcClient = realOrbitClient
-		orbitCalcClient = NewMockOrbitCalculationClient()
+		orbitCalcClient = realOrbitClient
 
 	} else {
-		orbitCalcClient = NewMockOrbitCalculationClient()
 		authClient = NewMockAuthClient()
 	}
 

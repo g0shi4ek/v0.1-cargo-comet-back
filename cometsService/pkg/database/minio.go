@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -32,6 +33,7 @@ type Config struct {
 }
 
 func MinioConfigFromEnv() (*Config, error) {
+	_ = godotenv.Load()
 	endpoint := os.Getenv("MINIO_ENDPOINT")
 	if endpoint == "" {
 		return nil, fmt.Errorf("failed to load minio config")
@@ -39,10 +41,6 @@ func MinioConfigFromEnv() (*Config, error) {
 
 	// Публичный endpoint для доступа из браузера
 	publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	if publicEndpoint == "" {
-		// По умолчанию используем localhost вместо имени docker-контейнера
-		publicEndpoint = strings.Replace(endpoint, "minio", "localhost", 1)
-	}
 
 	accessKeyID := os.Getenv("MINIO_ACCESS_KEY_ID")
 	secretAccessKey := os.Getenv("MINIO_SECRET_ACCESS_KEY")

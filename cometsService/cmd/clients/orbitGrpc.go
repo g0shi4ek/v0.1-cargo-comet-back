@@ -112,7 +112,7 @@ func (c *RealOrbitCalculationClient) GetTrajectory(ctx context.Context, observat
 			Observations: grpcObservations,
 		},
 		StartTimeUtc: startTime.Format("2006-01-02 15:04:05"),
-		EndTimeUtc:   endTime.Format("2006-01-02 15:04:05"),
+		EndTimeUtc:   endTime.Format("2016-01-02 15:04:05"),
 		NumPoints:    int32(numPoints),
 	}
 
