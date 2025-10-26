@@ -10,6 +10,7 @@ var (
 	ErrNotEnoughObservations = errors.New("not enough observations for orbit calculation")
 	ErrUnauthorized          = errors.New("unauthorized access")
 	ErrInvalidInput          = errors.New("invalid input data")
+	ErrOrbitNotCalculated    = errors.New("orbit not calculated for this comet")
 )
 
 type ICometsRepository interface {

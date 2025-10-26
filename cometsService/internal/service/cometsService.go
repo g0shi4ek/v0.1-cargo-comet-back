@@ -49,6 +49,12 @@ func (s *CometsService) CreateObservation(ctx context.Context, userID int, req *
 		return nil, err
 	}
 
+	if req.CometID != nil {
+		if err := s.resetCalculationFlags(ctx, *req.CometID, userID); err != nil {
+			log.Printf("Warning: failed to reset calculation flags: %v", err)
+		}
+	}
+
 	return observation, nil
 }
 
@@ -109,11 +115,48 @@ func (s *CometsService) UpdateObservation(ctx context.Context, userID, id int, r
 		ObservedAt:     observedAt,
 	}
 
-	return s.cometRepo.UpdateObservation(ctx, observation)
+	err = s.cometRepo.UpdateObservation(ctx, observation)
+	if err != nil {
+		return err
+	}
+
+	// Сбрасываем флаги расчетов у кометы, если наблюдение привязано к комете
+	if existingObservation.CometID != nil {
+		if err := s.resetCalculationFlags(ctx, *existingObservation.CometID, userID); err != nil {
+			log.Printf("Warning: failed to reset calculation flags: %v", err)
+		}
+	}
+
+	return nil
 }
 
 func (s *CometsService) DeleteObservation(ctx context.Context, id int, userID int) error {
-	return s.cometRepo.DeleteObservation(ctx, id, userID)
+	observation, err := s.cometRepo.GetObservationByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if observation == nil {
+		return domain.ErrNotFound
+	}
+
+	// Проверяем права доступа
+	if observation.UserID != userID {
+		return domain.ErrUnauthorized
+	}
+
+	// Удаляем наблюдение
+	if err := s.cometRepo.DeleteObservation(ctx, id, userID); err != nil {
+		return err
+	}
+
+	// Сбрасываем флаги расчетов у кометы, если наблюдение было привязано к комете
+	if observation.CometID != nil {
+		if err := s.resetCalculationFlags(ctx, *observation.CometID, userID); err != nil {
+			log.Printf("Warning: failed to reset calculation flags: %v", err)
+		}
+	}
+
+	return nil
 }
 
 // Comet methods
@@ -215,7 +258,12 @@ func (s *CometsService) CalculateOrbit(ctx context.Context, userID, cometID int)
 	comet.AscendingNodeLong = orbitalElements.AscendingNodeLong
 	comet.ArgumentOfPerihelion = orbitalElements.ArgumentOfPerihelion
 	comet.TrueAnomalyDeg = orbitalElements.TrueAnomalyDeg
+	comet.OrbitActual = true // Устанавливаем флаг
+	comet.CalculatedAt = time.Now()
 
+	comet.CloseActual = false
+	comet.MinApproachDate = nil
+	comet.MinApproachDistance = nil
 	if err := s.cometRepo.UpdateComets(ctx, comet); err != nil {
 		return nil, err
 	}
@@ -229,6 +277,7 @@ func (s *CometsService) CalculateOrbit(ctx context.Context, userID, cometID int)
 		AscendingNodeLong:    &comet.AscendingNodeLong,
 		ArgumentOfPerihelion: &comet.ArgumentOfPerihelion,
 		TrueAnomalyDeg:       &comet.TrueAnomalyDeg,
+		OrbitActual:          comet.OrbitActual,
 	}
 
 	return response, nil
@@ -247,6 +296,10 @@ func (s *CometsService) CalculateCloseApproach(ctx context.Context, userID, come
 
 	if comet.UserID != userID {
 		return nil, domain.ErrUnauthorized
+	}
+
+	if !comet.OrbitActual {
+		return nil, domain.ErrOrbitNotCalculated
 	}
 
 	// Получаем наблюдения для кометы
@@ -269,6 +322,7 @@ func (s *CometsService) CalculateCloseApproach(ctx context.Context, userID, come
 	comet.MinApproachDate = &closeApproach.Date
 	comet.MinApproachDistance = &closeApproach.Distance
 	comet.CalculatedAt = time.Now()
+	comet.CloseActual = true
 
 	if err := s.cometRepo.UpdateComets(ctx, comet); err != nil {
 		return nil, err
@@ -280,6 +334,7 @@ func (s *CometsService) CalculateCloseApproach(ctx context.Context, userID, come
 		MinApproachDate:     comet.MinApproachDate,
 		MinApproachDistance: comet.MinApproachDistance,
 		CalculatedAt:        comet.CalculatedAt,
+		CloseActual:         comet.CloseActual,
 	}
 
 	return response, nil
@@ -310,4 +365,28 @@ func (s *CometsService) UploadCometPhoto(ctx context.Context, userID, cometID in
 	}
 
 	return comet, nil
+}
+
+func (s *CometsService) resetCalculationFlags(ctx context.Context, cometID int, userID int) error {
+	comet, err := s.cometRepo.GetCometsByID(ctx, cometID)
+	if err != nil {
+		return err
+	}
+	if comet == nil {
+		return nil // Комета уже удалена или не существует
+	}
+
+	// Проверяем права доступа
+	if comet.UserID != userID {
+		return domain.ErrUnauthorized
+	}
+
+	// Сбрасываем флаги только если они были true
+	if comet.OrbitActual || comet.CloseActual {
+		comet.OrbitActual = false
+		comet.CloseActual = false
+		return s.cometRepo.UpdateComets(ctx, comet)
+	}
+
+	return nil
 }
