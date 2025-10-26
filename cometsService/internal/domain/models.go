@@ -55,3 +55,16 @@ type CloseApproach struct {
 	Date     time.Time
 	Distance float64 // в а.е.
 }
+
+type TrajectoryPoint struct {
+	Time time.Time `json:"time"`
+	X    float64   `json:"x"` // Гелиоцентрическая координата X (а.е.)
+	Y    float64   `json:"y"` // Гелиоцентрическая координата Y (а.е.)
+	Z    float64   `json:"z"` // Гелиоцентрическая координата Z (а.е.)
+}
+
+// Trajectory содержит траектории кометы и Земли
+type Trajectory struct {
+	CometTrajectory []TrajectoryPoint `json:"comet_trajectory"`
+	EarthTrajectory []TrajectoryPoint `json:"earth_trajectory"`
+}

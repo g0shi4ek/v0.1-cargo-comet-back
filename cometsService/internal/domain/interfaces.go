@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 var (
@@ -46,6 +47,7 @@ type ICometsService interface {
 	// Calculation methods
 	CalculateOrbit(ctx context.Context, userID, cometID int) (*CometOrbitResponse, error)
 	CalculateCloseApproach(ctx context.Context, userID, cometID int) (*CometDistanceResponse, error)
+	GetTrajectory(ctx context.Context, userID, cometID int, startTime, endTime time.Time, numPoints int) (*Trajectory, error)
 
 	// File upload methods
 	UploadCometPhoto(ctx context.Context, userID, cometID int, fileData []byte, fileName string) (*Comet, error)
@@ -60,6 +62,7 @@ type IAuthClient interface {
 type IOrbitCalculationClient interface {
 	CalculateOrbit(ctx context.Context, observations []*Observation) (*OrbitalElements, error)
 	CalculateCloseApproach(ctx context.Context, observations []*Observation) (*CloseApproach, error)
+	GetTrajectory(ctx context.Context, observations []*Observation, startTime, endTime time.Time, numPoints int) (*Trajectory, error)
 }
 
 // FileStorageClient интерфейс для сервиса хранения файлов

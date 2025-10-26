@@ -94,6 +94,69 @@ func (c *RealOrbitCalculationClient) CalculateCloseApproach(ctx context.Context,
 	}, nil
 }
 
+// GetTrajectory получает траекторию кометы и Земли для визуализации
+func (c *RealOrbitCalculationClient) GetTrajectory(ctx context.Context, observations []*domain.Observation, startTime, endTime time.Time, numPoints int) (*domain.Trajectory, error) {
+	// Конвертируем наблюдения в формат gRPC
+	grpcObservations := make([]*cometorbit.Observation, len(observations))
+	for i, obs := range observations {
+		grpcObservations[i] = &cometorbit.Observation{
+			TimeUtc:      obs.ObservedAt.Format("2006-01-02 15:04:05"),
+			RaDeg:        obs.RightAscension,
+			DecDeg:       obs.Declination,
+			IsHorizontal: obs.IsHorizontal,
+		}
+	}
+
+	request := &cometorbit.TrajectoryRequest{
+		Observations: &cometorbit.ObservationsRequest{
+			Observations: grpcObservations,
+		},
+		StartTimeUtc: startTime.Format("2006-01-02 15:04:05"),
+		EndTimeUtc:   endTime.Format("2006-01-02 15:04:05"),
+		NumPoints:    int32(numPoints),
+	}
+
+	response, err := c.client.GetTrajectory(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	// Конвертируем траекторию кометы
+	cometTrajectory := make([]domain.TrajectoryPoint, len(response.CometTrajectory))
+	for i, point := range response.CometTrajectory {
+		time, err := time.Parse("2006-01-02 15:04:05", point.TimeUtc)
+		if err != nil {
+			return nil, err
+		}
+		cometTrajectory[i] = domain.TrajectoryPoint{
+			Time: time,
+			X:    point.XAu,
+			Y:    point.YAu,
+			Z:    point.ZAu,
+		}
+	}
+
+	// Конвертируем траекторию Земли
+	earthTrajectory := make([]domain.TrajectoryPoint, len(response.EarthTrajectory))
+	for i, point := range response.EarthTrajectory {
+		time, err := time.Parse("2006-01-02 15:04:05", point.TimeUtc)
+		if err != nil {
+			return nil, err
+		}
+		earthTrajectory[i] = domain.TrajectoryPoint{
+			Time: time,
+			X:    point.XAu,
+			Y:    point.YAu,
+			Z:    point.ZAu,
+		}
+	}
+
+	return &domain.Trajectory{
+		CometTrajectory: cometTrajectory,
+		EarthTrajectory: earthTrajectory,
+	}, nil
+}
+
 // Close закрывает соединение
 func (c *RealOrbitCalculationClient) Close() error {
 	return c.conn.Close()
