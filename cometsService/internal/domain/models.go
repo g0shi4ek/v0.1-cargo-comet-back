@@ -12,7 +12,7 @@ type Observation struct {
 	Declination    float64   `json:"declination"`
 	ObservedAt     time.Time `json:"observed_at"`
 	Comet          *Comet    `json:"comet,omitempty" gorm:"foreignKey:CometID"`
-	// добавить флаг горизонтальные или нет
+	IsHorizontal   bool      `json:"is_horizontal"`
 }
 
 type Comet struct {
@@ -22,15 +22,16 @@ type Comet struct {
 	PhotoURL             string     `json:"photo_url"`
 	SemiMajorAxis        float64    `json:"semi_major_axis"`
 	Eccentricity         float64    `json:"eccentricity"`
-	Inclination          float64    `json:"inclination"`
+	RaanDeg              float64    `json:"raan_deg"`
 	AscendingNodeLong    float64    `json:"ascending_node_long"`
 	ArgumentOfPerihelion float64    `json:"argument_of_perihelion"`
-	TimeOfPerihelion     time.Time  `json:"time_of_perihelion"`
+	OrbitActual          bool       `json:"orbit_actual"`
+	TrueAnomalyDeg       float64    `json:"true_anomaly_deg"`
 	MinApproachDate      *time.Time `json:"min_approach_date"`
 	MinApproachDistance  *float64   `json:"min_approach_distance"`
+	CloseActual          bool       `json:"close_actual"`
 	CalculatedAt         time.Time  `json:"calculated_at"`
-	// флаг валидны ли первые
-	//флаг валидны ли вторые
+	DeletedAt            *time.Time `json:"deleted_at,omitempty" gorm:"index"`
 }
 
 type CalculationRequest struct {
@@ -44,10 +45,10 @@ type CalculationRequest struct {
 type OrbitalElements struct {
 	SemiMajorAxis        float64
 	Eccentricity         float64
-	Inclination          float64
+	RaanDeg              float64
 	AscendingNodeLong    float64
 	ArgumentOfPerihelion float64
-	TimeOfPerihelion     time.Time
+	TrueAnomalyDeg       float64
 }
 
 type CloseApproach struct {

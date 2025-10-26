@@ -10,6 +10,7 @@ var (
 	ErrNotEnoughObservations = errors.New("not enough observations for orbit calculation")
 	ErrUnauthorized          = errors.New("unauthorized access")
 	ErrInvalidInput          = errors.New("invalid input data")
+	ErrOrbitNotCalculated    = errors.New("orbit not calculated for this comet")
 )
 
 type ICometsRepository interface {
@@ -37,7 +38,7 @@ type ICometsService interface {
 	DeleteObservation(ctx context.Context, id int, userID int) error
 
 	// Comet methods
-	CreateComet(ctx context.Context, userID int, req *CreateCometRequest) (*Comet, error)
+	CreateComet(ctx context.Context, userID int, name string, fileData []byte, fileName string) (*Comet, error)
 	GetComet(ctx context.Context, id int) (*Comet, error)
 	GetUserComets(ctx context.Context, userID int) ([]*Comet, error)
 	DeleteComet(ctx context.Context, id int, userID int) error
@@ -45,22 +46,20 @@ type ICometsService interface {
 	// Calculation methods
 	CalculateOrbit(ctx context.Context, userID, cometID int) (*CometOrbitResponse, error)
 	CalculateCloseApproach(ctx context.Context, userID, cometID int) (*CometDistanceResponse, error)
-	GetCalculationStatus(ctx context.Context, userID, requestID int) (*CalculationRequest, error)
 
 	// File upload methods
-	UploadObservationPhoto(ctx context.Context, userID int, fileData []byte, fileName string) (string, error)
+	UploadCometPhoto(ctx context.Context, userID, cometID int, fileData []byte, fileName string) (*Comet, error)
 }
 
 // AuthClient интерфейс для сервиса авторизации
 type IAuthClient interface {
-	ValidateToken(ctx context.Context, token string) (int, error)
+	VerifyToken(token string) (bool, int32, error)
 }
 
 // OrbitCalculationClient интерфейс для сервиса расчетов орбит
 type IOrbitCalculationClient interface {
 	CalculateOrbit(ctx context.Context, observations []*Observation) (*OrbitalElements, error)
-	CalculateCloseApproach(ctx context.Context, orbitalElements *OrbitalElements) (*CloseApproach, error)
-	GetCalculationStatus(ctx context.Context, requestID int) (*CalculationRequest, error)
+	CalculateCloseApproach(ctx context.Context, observations []*Observation) (*CloseApproach, error)
 }
 
 // FileStorageClient интерфейс для сервиса хранения файлов

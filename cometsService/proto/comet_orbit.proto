@@ -1,0 +1,72 @@
+// protos/comet_orbit.proto
+syntax = "proto3";
+
+package cometorbit;
+option go_package = "github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/grpc/cometorbit";
+
+// Сервис для вычисления параметров орбиты кометы
+service OrbitService {
+  // Вычисляет 6 кеплеровских элементов орбиты по набору наблюдений
+  rpc CalculateKeplerianElements(ObservationsRequest) returns (KeplerianElementsResponse);
+  
+  // Вычисляет дату и дистанцию максимального сближения с Землей
+  rpc GetClosestApproach(ObservationsRequest) returns (ClosestApproachResponse);
+  
+  // Возвращает траекторию (эфемериды) для визуализации
+  rpc GetTrajectory(TrajectoryRequest) returns (TrajectoryResponse);
+}
+
+// ---- Сообщения для запросов и ответов ----
+
+// Одно наблюдение
+message Observation {
+  string time_utc = 1; // "YYYY-MM-DD HH:MM:SS"
+  double ra_deg = 2;   // Прямое восхождение в градусах
+  double dec_deg = 3;  // Склонение в градусах
+  bool isHorizontal = 4; 
+}
+
+// Запрос, содержащий список наблюдений
+message ObservationsRequest {
+  repeated Observation observations = 1;
+}
+
+// Ответ с 6 кеплеровскими элементами
+message KeplerianElementsResponse {
+  double semi_major_axis_au = 1;
+  double eccentricity = 2;
+  double inclination_deg = 3;
+  double raan_deg = 4; // Longitude of ascending node
+  double arg_of_periapsis_deg = 5;
+  double true_anomaly_deg = 6;
+  string epoch_jd = 7;
+}
+
+// Ответ с информацией о сближении
+message ClosestApproachResponse {
+  string time_utc = 1;
+  double distance_au = 2;
+  double distance_km = 3;
+}
+
+// Запрос на расчет траектории
+message TrajectoryRequest {
+  ObservationsRequest observations = 1; // Наблюдения для расчета орбиты
+  string start_time_utc = 2;         // Начало периода для расчета траектории
+  string end_time_utc = 3;           // Конец периода
+  int32 num_points = 4;              // Количество точек на траектории
+}
+
+// Одна точка траектории
+message TrajectoryPoint {
+  string time_utc = 1;
+  double x_au = 2; // Гелиоцентрические координаты
+  double y_au = 3;
+  double z_au = 4;
+}
+
+// Ответ с траекторией (для кометы и Земли)
+message TrajectoryResponse {
+  repeated TrajectoryPoint comet_trajectory = 1;
+  repeated TrajectoryPoint earth_trajectory = 2;
+}

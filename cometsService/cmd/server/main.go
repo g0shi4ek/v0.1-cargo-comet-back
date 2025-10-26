@@ -4,65 +4,64 @@ import (
 	"log"
 	"os"
 
-	"github.com/gin-gonic/gin"
+	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/cmd/clients"
+	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/domain"
 	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/handlers"
 	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/repository"
 	"github.com/g0shi4ek/v0.1-cargo-comet-back/cometsService/internal/service"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Инициализация логгера
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	_ = godotenv.Load()
 
 	// Получение переменных окружения
-	dbHost := getEnv("DB_HOST", "localhost")
-	dbPort := getEnv("DB_PORT", "5432")
-	dbUser := getEnv("DB_USER", "root")
-	dbPassword := getEnv("DB_PASSWORD", "mydbpass")
-	dbName := getEnv("DB_NAME", "cometdb")
-	appPort := getEnv("APP_PORT", "8080")
-	runMigrations := getEnv("RUN_MIGRATIONS", "true")
-	seedTestData := getEnv("SEED_TEST_DATA", "true")
+	appPort := os.Getenv("APP_PORT")
+	runMigrations := os.Getenv("RUN_MIGRATIONS")
 
-	// Подключение к базе данных
-	dsn := "host=" + dbHost + " user=" + dbUser + " password=" + dbPassword + 
-		" dbname=" + dbName + " port=" + dbPort + " sslmode=disable TimeZone=UTC"
-	
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
-	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
-	}
-	log.Println("Connected to database successfully")
+	cometRepo := repository.NewCometsRepository()
 
 	// Выполнение миграций
 	if runMigrations == "true" {
-		if err := Migrate(db); err != nil {
+		if err := Migrate(); err != nil {
 			log.Fatal("Migration failed:", err)
 		}
 	}
 
-	// Заполнение тестовыми данными
-	if seedTestData == "true" {
-		if err := SeedTestData(db); err != nil {
-			log.Printf("Warning: Failed to seed test data: %v", err)
+	// Получение адресов сервисов из переменных окружения
+	authServiceAddr := os.Getenv("AUTH_SERVICE_ADDR")   //"localhost:50051"
+	orbitServiceAddr := os.Getenv("ORBIT_SERVICE_ADDR") //"localhost:50052"
+
+	// Инициализация клиентов
+	var orbitCalcClient domain.IOrbitCalculationClient
+	var authClient domain.IAuthClient
+
+	// В зависимости от окружения используем реальные или mock клиенты
+	useRealClients := os.Getenv("USE_REAL_CLIENTS")
+
+	realAuthClient, err := clients.NewRealAuthClient(authServiceAddr)
+	if err != nil {
+		log.Fatal("Failed to create auth client:", err)
+	}
+	authClient = realAuthClient
+
+	if useRealClients == "true" {
+		log.Println("Using real gRPC clients")
+
+		// Реальные клиенты
+		realOrbitClient, err := clients.NewRealOrbitCalculationClient(orbitServiceAddr)
+		if err != nil {
+			log.Fatal("Failed to create orbit calculation client:", err)
 		}
+		orbitCalcClient = realOrbitClient
+	} else {
+		orbitCalcClient = NewMockOrbitCalculationClient()
+		authClient = NewMockAuthClient()
 	}
 
-	// Инициализация зависимостей
-	cometRepo := repository.NewCometsRepository(db)
-	
-	// Инициализация клиентов (заглушки для демонстрации)
-	orbitCalcClient := NewMockOrbitCalculationClient()
-	fileStorageClient := NewMockFileStorageClient()
-	authClient := NewMockAuthClient()
-
 	// Инициализация сервиса
-	cometsService := service.NewCometsService(cometRepo, orbitCalcClient, fileStorageClient)
+	cometsService := service.NewCometsService(cometRepo, orbitCalcClient)
 
 	// Настройка роутера
 	router := gin.Default()
@@ -78,7 +77,7 @@ func main() {
 	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"service": "comets-service",
 		})
 	})
@@ -105,13 +104,4 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-// getEnv получение переменной окружения с значением по умолчанию
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
 }

@@ -9,46 +9,51 @@ type ObservationResponse struct {
 	RightAscension float64   `json:"right_ascension"`
 	Declination    float64   `json:"declination"`
 	ObservedAt     time.Time `json:"observed_at"`
-	PhotoURL       string    `json:"photo_url"`
 	CreatedAt      time.Time `json:"created_at"`
 }
 
 type CometCreatedResponse struct {
-	ID     int    `json:"id"`
-	UserID int    `json:"user_id"`
-	Name   string `json:"name"`
+	ID       int    `json:"id"`
+	UserID   int    `json:"user_id"`
+	Name     string `json:"name"`
+	PhotoURL string `json:"photo_url"`
 }
 
 type CometResponse struct {
 	ID                   int        `json:"id"`
 	UserID               int        `json:"user_id"`
 	Name                 string     `json:"name"`
+	PhotoURL             string     `json:"photo_url"`
 	SemiMajorAxis        *float64   `json:"semi_major_axis"`
 	Eccentricity         *float64   `json:"eccentricity"`
-	Inclination          *float64   `json:"inclination"`
+	RaanDeg              *float64   `json:"raan_deg"`
 	AscendingNodeLong    *float64   `json:"ascending_node_long"`
 	ArgumentOfPerihelion *float64   `json:"argument_of_perihelion"`
-	TimeOfPerihelion     *time.Time `json:"time_of_perihelion"`
+	OrbitActual          bool       `json:"orbit_actual"`
+	TrueAnomalyDeg       *float64   `json:"true_anomaly_deg"`
 	MinApproachDate      *time.Time `json:"min_approach_date"`
 	MinApproachDistance  *float64   `json:"min_approach_distance"`
+	CloseActual          bool       `json:"close_actual"`
 	CalculatedAt         time.Time  `json:"calculated_at"`
 }
 
 type CometOrbitResponse struct {
-	ID                   int        `json:"id"`
-	SemiMajorAxis        *float64   `json:"semi_major_axis"`
-	Eccentricity         *float64   `json:"eccentricity"`
-	Inclination          *float64   `json:"inclination"`
-	AscendingNodeLong    *float64   `json:"ascending_node_long"`
-	ArgumentOfPerihelion *float64   `json:"argument_of_perihelion"`
-	TimeOfPerihelion     *time.Time `json:"time_of_perihelion"`
+	ID                   int      `json:"id"`
+	SemiMajorAxis        *float64 `json:"semi_major_axis"`
+	Eccentricity         *float64 `json:"eccentricity"`
+	RaanDeg              *float64 `json:"raan_deg"`
+	AscendingNodeLong    *float64 `json:"ascending_node_long"`
+	ArgumentOfPerihelion *float64 `json:"argument_of_perihelion"`
+	TrueAnomalyDeg       *float64 `json:"true_anomaly_deg"`
+	OrbitActual          bool     `json:"orbit_actual"`
 }
 
 type CometDistanceResponse struct {
-	ID                   int        `json:"id"`
-	MinApproachDate      *time.Time `json:"min_approach_date"`
-	MinApproachDistance  *float64   `json:"min_approach_distance"`
-	CalculatedAt         time.Time  `json:"calculated_at"`
+	ID                  int        `json:"id"`
+	MinApproachDate     *time.Time `json:"min_approach_date"`
+	MinApproachDistance *float64   `json:"min_approach_distance"`
+	CalculatedAt        time.Time  `json:"calculated_at"`
+	CloseActual         bool       `json:"close_actual"`
 }
 
 type ErrorResponse struct {
